@@ -1,16 +1,15 @@
---// Rayfield Base
+--// Ghost Hub Final Unificado
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "Ghost Hub",
-   Icon = nil,
-   LoadingTitle = "GhostHub.",
-   LoadingSubtitle = "by thalles456u",
-   Theme = "Black",
-   ToggleUIKeybind = "K",
-   ConfigurationSaving = {Enabled = true, FolderName = nil, FileName = "Ghost Hub"},
-   Discord = {Enabled = false, Invite = "JF2F2RANud", RememberJoins = true},
-   KeySystem = false
+    Name = "Ghost Hub",
+    LoadingTitle = "GhostHub.",
+    LoadingSubtitle = "by thalles456u",
+    Theme = "Black",
+    ToggleUIKeybind = "K",
+    ConfigurationSaving = {Enabled = true, FolderName = nil, FileName = "Aura Hub"},
+    Discord = {Enabled = false, Invite = "JF2F2RANud", RememberJoins = true},
+    KeySystem = false
 })
 
 -- Abas
@@ -20,11 +19,13 @@ local FunTab = Window:CreateTab("Fun", 4483362458)
 local ESPTab = Window:CreateTab("ESP", 4483362458)
 local OutrosTab = Window:CreateTab("Outros", 4483362458)
 
--- Seção Menu
+-- =========================
+-- MENU
+-- =========================
 local MenuSection = MenuTab:CreateSection("Funções Menu")
 
--- Speed por Texto
-local SpeedInput = MenuTab:CreateInput({
+-- Speed
+MenuTab:CreateInput({
     Name = "Speed",
     PlaceholderText = "Digite a velocidade",
     RemoveTextAfterFocusLost = false,
@@ -38,223 +39,262 @@ local SpeedInput = MenuTab:CreateInput({
 })
 
 -- Infinity Jump
-local InfinityJumpToggle = MenuTab:CreateToggle({
+local InfinityJumpEnabled = false
+MenuTab:CreateToggle({
     Name = "Infinity Jump",
     CurrentValue = false,
     Callback = function(Value)
+        InfinityJumpEnabled = Value
+    end
+})
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if InfinityJumpEnabled then
         local player = game.Players.LocalPlayer
-        if Value then
-            game:GetService("UserInputService").JumpRequest:Connect(function()
-                if player.Character and player.Character:FindFirstChild("Humanoid") then
-                    player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+-- =========================
+-- LOCALPLAYER
+-- =========================
+local LPSection = LocalPlayerTab:CreateSection("Funções LocalPlayer")
+
+-- Noclip
+local NoclipEnabled = false
+LocalPlayerTab:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Callback = function(Value)
+        NoclipEnabled = Value
+    end
+})
+game:GetService("RunService").Stepped:Connect(function()
+    if NoclipEnabled then
+        local player = game.Players.LocalPlayer
+        if player.Character then
+            for _, part in pairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
                 end
-            end)
+            end
+        end
+    end
+end)
+
+-- Fullbring
+local FullbringEnabled = false
+LocalPlayerTab:CreateToggle({
+    Name = "Fullbring",
+    CurrentValue = false,
+    Callback = function(Value)
+        FullbringEnabled = Value
+        local player = game.Players.LocalPlayer
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            if Value then
+                player.Character.Humanoid.WalkSpeed = 30
+                player.Character.Humanoid.JumpPower = 70
+                if not player.Character:FindFirstChild("FullbringEffect") then
+                    local effect = Instance.new("ParticleEmitter")
+                    effect.Name = "FullbringEffect"
+                    effect.Parent = player.Character.HumanoidRootPart
+                    effect.Rate = 50
+                    effect.Lifetime = NumberRange.new(0.5)
+                    effect.Speed = NumberRange.new(5)
+                end
+            else
+                player.Character.Humanoid.WalkSpeed = 16
+                player.Character.Humanoid.JumpPower = 50
+                if player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart:FindFirstChild("FullbringEffect") then
+                    player.Character.HumanoidRootPart.FullbringEffect:Destroy()
+                end
+            end
         end
     end
 })
--- Seção LocalPlayer
-local LocalPlayerSection = LocalPlayerTab:CreateSection("Funções LocalPlayer")
 
--- Copiar Skin por Nick
-local CopySkinInput = LocalPlayerTab:CreateInput({
+-- Copiar Skin/Roupas por Nick
+LocalPlayerTab:CreateInput({
     Name = "Copiar Skin (Nick)",
     PlaceholderText = "Digite o Nick do jogador",
     RemoveTextAfterFocusLost = false,
     Callback = function(Nick)
-        local targetPlayer = game.Players:FindFirstChild(Nick)
+        local target = game.Players:FindFirstChild(Nick)
         local player = game.Players.LocalPlayer
-        if targetPlayer and targetPlayer.Character and player.Character then
-            -- Tenta copiar a aparência do jogador
+        if target and target.Character and player.Character then
             local success, err = pcall(function()
-                for i, v in pairs(targetPlayer.Character:GetChildren()) do
-                    if v:IsA("Accessory") then
-                        local clone = v:Clone()
-                        clone.Parent = player.Character
-                    elseif v:IsA("Shirt") or v:IsA("Pants") or v:IsA("CharacterMesh") then
-                        local clone = v:Clone()
+                -- Shirt
+                if target.Character:FindFirstChildOfClass("Shirt") then
+                    local s = target.Character:FindFirstChildOfClass("Shirt"):Clone()
+                    s.Parent = player.Character
+                end
+                -- Pants
+                if target.Character:FindFirstChildOfClass("Pants") then
+                    local p = target.Character:FindFirstChildOfClass("Pants"):Clone()
+                    p.Parent = player.Character
+                end
+                -- Accessories/Hats
+                for _, acc in pairs(target.Character:GetChildren()) do
+                    if acc:IsA("Accessory") then
+                        local clone = acc:Clone()
                         clone.Parent = player.Character
                     end
                 end
             end)
             if not success then
-                warn("Não foi possível copiar a skin: "..err)
-            end
-        end
-    end
-})
-
--- Fullbring funcional
-local FullbringToggle = LocalPlayerTab:CreateToggle({
-    Name = "Fullbring",
-    CurrentValue = false,
-    Callback = function(Value)
-        local player = game.Players.LocalPlayer
-        if Value then
-            -- Exemplo de efeito de Fullbring: aumenta dano e velocidade
-            if player.Character and player.Character:FindFirstChild("Humanoid") then
-                player.Character.Humanoid.WalkSpeed = 30
-                player.Character.Humanoid.JumpPower = 70
+                warn("Não foi possível copiar roupas: "..err)
             end
         else
-            -- Reset para valores normais
-            if player.Character and player.Character:FindFirstChild("Humanoid") then
-                player.Character.Humanoid.WalkSpeed = 16
-                player.Character.Humanoid.JumpPower = 50
-            end
+            warn("Jogador não encontrado ou sem personagem")
         end
     end
 })
--- Seção Fun
-local FunSection = FunTab:CreateSection("Funções Fun")
 
--- Fly
-local FlyToggle = FunTab:CreateToggle({
+-- =========================
+-- FUN
+-- =========================
+local FlySection = FunTab:CreateSection("Funções Fly")
+local FlyEnabled = false
+local FlySpeed = 50
+local FlyBodyVelocity
+local FlyConnection
+
+FunTab:CreateToggle({
     Name = "Fly (PC & Mobile)",
     CurrentValue = false,
     Callback = function(Value)
         local player = game.Players.LocalPlayer
-        local character = player.Character
-        if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-
-        local hrp = character:FindFirstChild("HumanoidRootPart")
+        local char = player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
         local cam = workspace.CurrentCamera
+        if not hrp then return end
 
-        if Value then
-            local flying = true
-            local speed = 50
-            local UIS = game:GetService("UserInputService")
-            local bodyVelocity = Instance.new("BodyVelocity")
-            bodyVelocity.MaxForce = Vector3.new(400000,400000,400000)
-            bodyVelocity.Velocity = Vector3.new(0,0,0)
-            bodyVelocity.Parent = hrp
+        FlyEnabled = Value
 
-            local function updateVelocity()
-                local moveDir = Vector3.new(0,0,0)
-                if UIS:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + cam.CFrame.LookVector end
-                if UIS:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - cam.CFrame.LookVector end
-                if UIS:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - cam.CFrame.RightVector end
-                if UIS:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + cam.CFrame.RightVector end
-                if UIS:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0,1,0) end
-                if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then moveDir = moveDir - Vector3.new(0,1,0) end
-                bodyVelocity.Velocity = moveDir.Unit * speed
-            end
+        if FlyEnabled then
+            FlyBodyVelocity = Instance.new("BodyVelocity")
+            FlyBodyVelocity.MaxForce = Vector3.new(1e5,1e5,1e5)
+            FlyBodyVelocity.Velocity = Vector3.new(0,0,0)
+            FlyBodyVelocity.Parent = hrp
 
-            local flyConnection
-            flyConnection = game:GetService("RunService").RenderStepped:Connect(function()
-                if flying then
-                    updateVelocity()
+            FlyConnection = game:GetService("RunService").RenderStepped:Connect(function()
+                if not FlyEnabled then return end
+                local dir = Vector3.new(0,0,0)
+                local UIS = game:GetService("UserInputService")
+                if UIS:IsKeyDown(Enum.KeyCode.W) then dir = dir + cam.CFrame.LookVector end
+                if UIS:IsKeyDown(Enum.KeyCode.S) then dir = dir - cam.CFrame.LookVector end
+                if UIS:IsKeyDown(Enum.KeyCode.A) then dir = dir - cam.CFrame.RightVector end
+                if UIS:IsKeyDown(Enum.KeyCode.D) then dir = dir + cam.CFrame.RightVector end
+                if UIS:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0,1,0) end
+                if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then dir = dir - Vector3.new(0,1,0) end
+
+                if dir.Magnitude > 0 then
+                    FlyBodyVelocity.Velocity = dir.Unit * FlySpeed
                 else
-                    flyConnection:Disconnect()
-                    bodyVelocity:Destroy()
+                    FlyBodyVelocity.Velocity = Vector3.new(0,0,0)
                 end
             end)
-
-            -- Para desligar o Fly
-            FlyToggle.Callback = function(NewValue)
-                flying = NewValue
-                if not flying then
-                    bodyVelocity:Destroy()
-                end
-            end
+        else
+            if FlyConnection then FlyConnection:Disconnect() end
+            if FlyBodyVelocity then FlyBodyVelocity:Destroy() end
         end
     end
 })
--- Seção ESP
-local ESPSection = ESPTab:CreateSection("ESP Players")
 
--- Toggle ESP
-local ESPToggle = ESPTab:CreateToggle({
+-- =========================
+-- ESP
+-- =========================
+local ESPSection = ESPTab:CreateSection("ESP Players")
+local ESPEnabled = false
+local ESPBoxes = {}
+local ESPConnections = {}
+
+ESPTab:CreateToggle({
     Name = "Ativar ESP",
     CurrentValue = false,
     Callback = function(Value)
-        local player = game.Players.LocalPlayer
-        local RunService = game:GetService("RunService")
-        local ESPBoxes = {}
+        ESPEnabled = Value
 
-        if Value then
-            -- Função para criar ESP em cada jogador
-            local function AddESP(target)
-                if target == player then return end
-                if not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then return end
+        -- Desliga ESP antigo
+        for _, gui in pairs(ESPBoxes) do
+            gui:Destroy()
+        end
+        ESPBoxes = {}
+        for _, conn in pairs(ESPConnections) do
+            conn:Disconnect()
+        end
+        ESPConnections = {}
 
-                local BillboardGui = Instance.new("BillboardGui")
-                BillboardGui.Name = "ESP"
-                BillboardGui.Adornee = target.Character.HumanoidRootPart
-                BillboardGui.Size = UDim2.new(0,100,0,50)
-                BillboardGui.AlwaysOnTop = true
-                BillboardGui.Parent = target.Character
+        if ESPEnabled then
+            local function AddESP(p)
+                if p == game.Players.LocalPlayer then return end
+                if not p.Character or not p.Character:FindFirstChild("HumanoidRootPart") then return end
 
-                local TextLabel = Instance.new("TextLabel")
-                TextLabel.Size = UDim2.new(1,0,1,0)
-                TextLabel.BackgroundTransparency = 1
-                TextLabel.TextColor3 = Color3.fromRGB(255,0,0)
-                TextLabel.TextStrokeTransparency = 0
-                TextLabel.TextScaled = true
-                TextLabel.Text = target.Name
-                TextLabel.Parent = BillboardGui
+                local bill = Instance.new("BillboardGui")
+                bill.Name = "ESP"
+                bill.Adornee = p.Character.HumanoidRootPart
+                bill.Size = UDim2.new(0,100,0,50)
+                bill.AlwaysOnTop = true
+                bill.Parent = p.Character
 
-                ESPBoxes[target] = BillboardGui
+                local text = Instance.new("TextLabel")
+                text.Size = UDim2.new(1,0,1,0)
+                text.BackgroundTransparency = 1
+                text.TextColor3 = Color3.fromRGB(255,0,0)
+                text.TextStrokeTransparency = 0
+                text.TextScaled = true
+                text.Text = p.Name
+                text.Parent = bill
+
+                ESPBoxes[p] = bill
             end
 
-            -- Adiciona ESP para jogadores já no jogo
-            for i, p in pairs(game.Players:GetPlayers()) do
+            for _, p in pairs(game.Players:GetPlayers()) do
                 AddESP(p)
             end
 
-            -- ESP para novos jogadores que entrarem
-            local PlayerAddedConnection
-            PlayerAddedConnection = game.Players.PlayerAdded:Connect(function(p)
-                AddESP(p)
-            end)
-
-            -- Armazena conexão para desligar depois
-            ESPToggle.PlayerAddedConnection = PlayerAddedConnection
-        else
-            -- Desliga ESP
-            for p, gui in pairs(ESPBoxes) do
-                if gui then gui:Destroy() end
-            end
-            ESPBoxes = {}
-            if ESPToggle.PlayerAddedConnection then
-                ESPToggle.PlayerAddedConnection:Disconnect()
-            end
+            local conn = game.Players.PlayerAdded:Connect(AddESP)
+            table.insert(ESPConnections, conn)
         end
     end
 })
--- Seção Outros
+
+-- =========================
+-- OUTROS
+-- =========================
 local OutrosSection = OutrosTab:CreateSection("Funções Extras")
 
--- Teleporte por Nick
-local TeleportInput = OutrosTab:CreateInput({
+-- Teleporte
+OutrosTab:CreateInput({
     Name = "Teleporte por Nick",
     PlaceholderText = "Digite o Nick do jogador",
     RemoveTextAfterFocusLost = false,
     Callback = function(Nick)
-        local targetPlayer = game.Players:FindFirstChild(Nick)
+        local target = game.Players:FindFirstChild(Nick)
         local player = game.Players.LocalPlayer
-        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
             if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                player.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0,3,0)
+                player.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0,3,0)
             end
         else
-            warn("Jogador não encontrado ou sem personagem.")
+            warn("Jogador não encontrado ou sem personagem")
         end
     end
 })
 
--- Spectar por Nick
-local SpectateInput = OutrosTab:CreateInput({
+-- Spectar
+OutrosTab:CreateInput({
     Name = "Spectar por Nick",
     PlaceholderText = "Digite o Nick do jogador",
     RemoveTextAfterFocusLost = false,
     Callback = function(Nick)
-        local targetPlayer = game.Players:FindFirstChild(Nick)
-        local player = game.Players.LocalPlayer
+        local target = game.Players:FindFirstChild(Nick)
         local cam = workspace.CurrentCamera
-        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            cam.CameraSubject = targetPlayer.Character.Humanoid
+        if target and target.Character and target.Character:FindFirstChild("Humanoid") then
+            cam.CameraSubject = target.Character.Humanoid
         else
-            warn("Jogador não encontrado ou sem personagem.")
+            warn("Jogador não encontrado ou sem personagem")
         end
     end
 })
