@@ -1,4 +1,4 @@
---// 99 Nights in the Forest Script with Rayfield GUI //--
+--// 99 Nights in the Forest Script com Moon Hub GUI //--
 
 -- Carrega Rayfield
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -7,6 +7,8 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local camera = workspace.CurrentCamera
 
 -- Cria a janela principal
 local Window = Rayfield:CreateWindow({
@@ -21,9 +23,6 @@ local Window = Rayfield:CreateWindow({
     KeySystem = false
 })
 
--- Pega o usuario do script
-local LocalPlayer = game.Players.LocalPlayer
-
 -- 🔔 Notificação inicial
 Rayfield:Notify({
     Title = "Aviso!",
@@ -32,35 +31,34 @@ Rayfield:Notify({
     Image = 4483362458
 })
 
--- Aba Menu
+-- =========================
+-- Menu Tab
+-- =========================
 local MenuTab = Window:CreateTab("Menu", 4483362458)
 
--- Teleport rápido para Campfire
 MenuTab:CreateButton({
     Name = "Teleport para Campfire",
     Callback = function()
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character:PivotTo(CFrame.new(0,10,0)) -- ajuste para a posição correta do Campfire
+            LocalPlayer.Character:PivotTo(CFrame.new(0,10,0))
         end
     end
 })
 
--- Teleport rápido para Grinder
 MenuTab:CreateButton({
     Name = "Teleport para Grinder",
     Callback = function()
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character:PivotTo(CFrame.new(16.1,4,-4.6)) -- ajuste para a posição correta do Grinder
+            LocalPlayer.Character:PivotTo(CFrame.new(16.1,4,-4.6))
         end
     end
 })
 
--- Item ESP Toggle
+-- Toggle Item ESP
 MenuTab:CreateToggle({
     Name = "Item ESP",
     CurrentValue = false,
     Callback = function(value)
-        -- chama função toggleESP que você já tem no script (se não tiver, podemos criar)
         espEnabled = value
         Rayfield:Notify({
             Title = "Item ESP",
@@ -71,7 +69,7 @@ MenuTab:CreateToggle({
     end
 })
 
--- NPC ESP Toggle (opcional, também pode ficar no FunTab)
+-- Toggle NPC ESP (BETA)
 MenuTab:CreateToggle({
     Name = "NPC ESP",
     CurrentValue = false,
@@ -85,14 +83,15 @@ MenuTab:CreateToggle({
         })
     end
 })
--- Aba Funções (Fun Tab)
+-- =========================
+-- Fun Tab
+-- =========================
 local FunTab = Window:CreateTab("Fun", 4483362458)
 
 -- =========================
 -- Infinity Jump
 -- =========================
 local infJumpEnabled = false
-
 UserInputService.JumpRequest:Connect(function()
     if infJumpEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
         LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
@@ -106,7 +105,7 @@ FunTab:CreateToggle({
         infJumpEnabled = value
         Rayfield:Notify({
             Title = "Infinity Jump",
-            Content = value and "Infinity Jump Ativado" or "Infinity Jump Desativado",
+            Content = value and "Ativado" or "Desativado",
             Duration = 4,
             Image = 4483362458,
         })
@@ -114,19 +113,14 @@ FunTab:CreateToggle({
 })
 
 -- =========================
--- Fullbring (Iluminação Global)
+-- Fullbring (Mapa Iluminado)
 -- =========================
 local fullbringEnabled = false
-local lightsFolder = Instance.new("Folder", workspace)
+local lightsFolder = workspace:FindFirstChild("Fullbring_Lights") or Instance.new("Folder", workspace)
 lightsFolder.Name = "Fullbring_Lights"
 
 local function enableFullbring()
-    -- Remove luzes antigas
-    for _, l in pairs(lightsFolder:GetChildren()) do
-        l:Destroy()
-    end
-
-    -- Criar várias luzes espalhadas pelo mapa
+    for _, l in pairs(lightsFolder:GetChildren()) do l:Destroy() end
     for x = -1000, 1000, 200 do
         for z = -1000, 1000, 200 do
             local part = Instance.new("Part")
@@ -137,18 +131,17 @@ local function enableFullbring()
             part.Position = Vector3.new(x, 50, z)
             part.Parent = lightsFolder
 
-            local light = Instance.new("PointLight", part)
+            local light = Instance.new("PointLight")
             light.Brightness = 5
             light.Range = 120
             light.Color = Color3.fromRGB(255, 255, 200)
+            light.Parent = part
         end
     end
 end
 
 local function disableFullbring()
-    for _, l in pairs(lightsFolder:GetChildren()) do
-        l:Destroy()
-    end
+    for _, l in pairs(lightsFolder:GetChildren()) do l:Destroy() end
 end
 
 FunTab:CreateToggle({
@@ -175,70 +168,9 @@ FunTab:CreateToggle({
         end
     end
 })
--- Serviços principais
-local RunService = game:GetService("RunService")
-local camera = workspace.CurrentCamera
 
 -- =========================
--- Variáveis e listas
--- =========================
-local teleportTargets = {
-    "Alien", "Alien Chest", "Alien Shelf", "Alpha Wolf", "Alpha Wolf Pelt", "Anvil Base",
-    "Apple", "Bandage", "Bear", "Berry", "Bolt", "Broken Fan", "Broken Microwave",
-    "Bunny", "Bunny Foot", "Cake", "Carrot", "Chest", "Chilli", "Coal", "Coin Stack",
-    "Crossbow Cultist", "Cultist", "Cultist Gem", "Deer", "Fuel Canister", "Giant Sack",
-    "Good Axe", "Iron Body", "Item Chest", "Laser Sword", "Leather Body", "Log", "Lost Child",
-    "Medkit", "Meat? Sandwich", "Morsel", "Old Car Engine", "Old Flashlight", "Old Radio",
-    "Oil Barrel", "Raygun", "Revolver", "Revolver Ammo", "Rifle", "Rifle Ammo", "Riot Shield",
-    "Sapling", "Seed Box", "Sheet Metal", "Spear", "Steak", "Stronghold Diamond Chest",
-    "Tyre", "UFO Component", "UFO Junk", "Washing Machine", "Wolf", "Wolf Corpse", "Wolf Pelt"
-}
-
-local AimbotTargets = {"Alien", "Alpha Wolf", "Wolf", "Crossbow Cultist", "Cultist", "Bunny", "Bear"}
-
--- =========================
--- Teleport Tab
--- =========================
-local TeleTab = Window:CreateTab("Teleport", 4483362458)
-
-for _, itemName in ipairs(teleportTargets) do
-    TeleTab:CreateButton({
-        Name = "Teleport para "..itemName,
-        Callback = function()
-            local closest, shortest = nil, math.huge
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj.Name == itemName and obj:IsA("Model") then
-                    local cf
-                    if pcall(function() cf = obj:GetPivot() end) then
-                    else
-                        local part = obj:FindFirstChildWhichIsA("BasePart")
-                        if part then cf = part.CFrame end
-                    end
-                    if cf then
-                        local dist = (cf.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                        if dist < shortest then
-                            closest = cf
-                            shortest = dist
-                        end
-                    end
-                end
-            end
-            if closest then
-                LocalPlayer.Character:PivotTo(closest + Vector3.new(0,5,0))
-            else
-                Rayfield:Notify({
-                    Title = "Teleport Falhou",
-                    Content = itemName.." não encontrado",
-                    Duration = 4,
-                    Image = 4483362458
-                })
-            end
-        end
-    })
-end
-
--- =========================
--- Fly & Speed Toggle
+-- Fly & Fly Speed
 -- =========================
 local flying = false
 local flySpeed = 60
@@ -287,7 +219,7 @@ FunTab:CreateToggle({
         if flying then startFlying() else stopFlying() end
         Rayfield:Notify({
             Title = "Fly",
-            Content = value and "Fly Ativado" or "Fly Desativado",
+            Content = value and "Ativado" or "Desativado",
             Duration = 4,
             Image = 4483362458
         })
@@ -305,155 +237,62 @@ FunTab:CreateSlider({
     end
 })
 -- =========================
--- Variáveis
+-- Teleport Tab
 -- =========================
-local AimbotEnabled = false
-local npcESPEnabled = false
-local AutoTreeFarmEnabled = false
-local FOVRadius = 100
-local FOVCircle = Drawing.new("Circle")
-FOVCircle.Color = Color3.fromRGB(128,255,0)
-FOVCircle.Thickness = 1
-FOVCircle.Radius = FOVRadius
-FOVCircle.Transparency = 0.5
-FOVCircle.Filled = false
-FOVCircle.Visible = false
+local TeleTab = Window:CreateTab("Teleport", 4483362458)
 
-local npcBoxes = {}
-local minDistance = 50
+local teleportTargets = {
+    "Alien", "Alien Chest", "Alien Shelf", "Alpha Wolf", "Alpha Wolf Pelt", "Anvil Base",
+    "Apple", "Bandage", "Bear", "Berry", "Bolt", "Broken Fan", "Broken Microwave",
+    "Bunny", "Bunny Foot", "Cake", "Carrot", "Chest", "Chilli", "Coal", "Coin Stack",
+    "Crossbow Cultist", "Cultist", "Cultist Gem", "Deer", "Fuel Canister", "Giant Sack",
+    "Good Axe", "Iron Body", "Item Chest", "Laser Sword", "Leather Body", "Log", "Lost Child",
+    "Medkit", "Meat? Sandwich", "Morsel", "Old Car Engine", "Old Flashlight", "Old Radio",
+    "Oil Barrel", "Raygun", "Revolver", "Revolver Ammo", "Rifle", "Rifle Ammo", "Riot Shield",
+    "Sapling", "Seed Box", "Sheet Metal", "Spear", "Steak", "Stronghold Diamond Chest",
+    "Tyre", "UFO Component", "UFO Junk", "Washing Machine", "Wolf", "Wolf Corpse", "Wolf Pelt"
+}
 
--- =========================
--- Aimbot
--- =========================
-RunService.RenderStepped:Connect(function()
-    if not AimbotEnabled or not UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
-        FOVCircle.Visible = false
-        return
-    end
-
-    local mousePos = UserInputService:GetMouseLocation()
-    FOVCircle.Position = Vector2.new(mousePos.X, mousePos.Y)
-    FOVCircle.Visible = true
-
-    local closestTarget, shortestDistance = nil, math.huge
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if table.find(AimbotTargets, obj.Name) and obj:IsA("Model") then
-            local head = obj:FindFirstChild("Head")
-            if head then
-                local screenPos, onScreen = camera:WorldToViewportPoint(head.Position)
-                if onScreen then
-                    local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
-                    if dist < shortestDistance and dist <= FOVRadius then
-                        shortestDistance = dist
-                        closestTarget = head
+for _, itemName in ipairs(teleportTargets) do
+    TeleTab:CreateButton({
+        Name = "Teleport para "..itemName,
+        Callback = function()
+            local closest, shortest = nil, math.huge
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj.Name == itemName and obj:IsA("Model") then
+                    local cf
+                    if pcall(function() cf = obj:GetPivot() end) then
+                    else
+                        local part = obj:FindFirstChildWhichIsA("BasePart")
+                        if part then cf = part.CFrame end
+                    end
+                    if cf then
+                        local dist = (cf.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                        if dist < shortest then
+                            closest = cf
+                            shortest = dist
+                        end
                     end
                 end
             end
-        end
-    end
-
-    if closestTarget then
-        local currentCF = camera.CFrame
-        local targetCF = CFrame.new(camera.CFrame.Position, closestTarget.Position)
-        camera.CFrame = currentCF:Lerp(targetCF, 0.2)
-    end
-end)
-
-FunTab:CreateToggle({
-    Name = "Aimbot (Right Click)",
-    CurrentValue = false,
-    Callback = function(value)
-        AimbotEnabled = value
-        Rayfield:Notify({
-            Title = "Aimbot",
-            Content = value and "Aimbot Ativado (Segure botão direito)" or "Aimbot Desativado",
-            Duration = 4,
-            Image = 4483362458
-        })
-    end
-})
-
--- =========================
--- NPC ESP
--- =========================
-local function createNPCESP(npc)
-    if not npc:IsA("Model") or not npc:FindFirstChild("HumanoidRootPart") then return end
-    if npcBoxes[npc] then return end
-
-    local box = Drawing.new("Square")
-    box.Thickness = 2
-    box.Transparency = 1
-    box.Color = Color3.fromRGB(255,85,0)
-    box.Filled = false
-    box.Visible = true
-
-    local nameText = Drawing.new("Text")
-    nameText.Text = npc.Name
-    nameText.Color = Color3.fromRGB(255,255,255)
-    nameText.Size = 16
-    nameText.Center = true
-    nameText.Outline = true
-    nameText.Visible = true
-
-    npcBoxes[npc] = {box = box, name = nameText}
-end
-
-local function toggleNPCESP(state)
-    npcESPEnabled = state
-    if not state then
-        for npc, visuals in pairs(npcBoxes) do
-            if visuals.box then visuals.box:Remove() end
-            if visuals.name then visuals.name:Remove() end
-        end
-        npcBoxes = {}
-    else
-        for _, obj in ipairs(workspace:GetDescendants()) do
-            if table.find(AimbotTargets, obj.Name) and obj:IsA("Model") then
-                createNPCESP(obj)
-            end
-        end
-    end
-end
-
-FunTab:CreateToggle({
-    Name = "NPC ESP",
-    CurrentValue = false,
-    Callback = toggleNPCESP
-})
-
--- Atualiza NPC ESP na tela
-RunService.RenderStepped:Connect(function()
-    for npc, visuals in pairs(npcBoxes) do
-        local box = visuals.box
-        local name = visuals.name
-
-        if npc and npc:FindFirstChild("HumanoidRootPart") then
-            local hrp = npc.HumanoidRootPart
-            local size = Vector2.new(60,80)
-            local screenPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
-
-            if onScreen then
-                box.Position = Vector2.new(screenPos.X - size.X/2, screenPos.Y - size.Y/2)
-                box.Size = size
-                box.Visible = true
-
-                name.Position = Vector2.new(screenPos.X, screenPos.Y - size.Y/2 - 15)
-                name.Visible = true
+            if closest then
+                LocalPlayer.Character:PivotTo(closest + Vector3.new(0,5,0))
             else
-                box.Visible = false
-                name.Visible = false
+                Rayfield:Notify({
+                    Title = "Teleport Falhou",
+                    Content = itemName.." não encontrado",
+                    Duration = 4,
+                    Image = 4483362458
+                })
             end
-        else
-            box:Remove()
-            name:Remove()
-            npcBoxes[npc] = nil
         end
-    end
-end)
+    })
+end
 
 -- =========================
 -- Auto Tree Farm
 -- =========================
+local AutoTreeFarmEnabled = false
 local badTrees = {}
 
 task.spawn(function()
@@ -479,11 +318,9 @@ task.spawn(function()
                 task.wait(0.2)
                 local startTime = tick()
                 while AutoTreeFarmEnabled and trunk and trunk.Parent and trunk.Parent.Name == "Small Tree" do
-                    -- Click simulation
                     local VirtualInputManager = game:GetService("VirtualInputManager")
                     VirtualInputManager:SendMouseButtonEvent(0,0,0,true,game,0)
                     VirtualInputManager:SendMouseButtonEvent(0,0,0,false,game,0)
-
                     task.wait(0.2)
                     if tick() - startTime > 12 then
                         badTrees[trunk:GetFullName()] = true
@@ -511,18 +348,18 @@ FunTab:CreateToggle({
     end
 })
 
--- Creditos Tab
-local FunTab = Window:CreateTab("Credits", 4483362458)
+-- =========================
+-- Credits Tab
+-- =========================
+local CreditsTab = Window:CreateTab("Credits", 4483362458)
 
 CreditsTab:CreateLabel("Feito por: thalles456u")
-
 CreditsTab:CreateLabel("Interface por: Rayfield")
-
-CreditsTab:CreateLabel("Alguma duvida? Entre no nosso discord! apenas clique na mensagem abaixo!")
+CreditsTab:CreateLabel("Alguma dúvida? Entre no nosso discord! Apenas clique na mensagem abaixo!")
 
 CreditsTab:CreateButton({
-    Name = "Clique aqui para copiar o link do Discord!"
+    Name = "Clique aqui para copiar o link do Discord!",
     Callback = function()
-        setclipboard("Link")
+        setclipboard("LinkDoDiscordAqui")
     end
 })
