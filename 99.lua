@@ -360,6 +360,6 @@ CreditsTab:CreateLabel("Alguma dúvida? Entre no nosso discord! Apenas clique na
 CreditsTab:CreateButton({
     Name = "Clique aqui para copiar o link do Discord!",
     Callback = function()
-        setclipboard("LinkDoDiscordAqui")
+        setclipboard("Ainda esta sendo desenvolvido!")
     end
 })
