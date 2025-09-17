@@ -513,9 +513,13 @@ FunTab:CreateToggle({
 
 -- Creditos Tab
 local FunTab = Window:CreateTab("Credits", 4483362458)
+
 CreditsTab:CreateLabel("Feito por: thalles456u")
+
 CreditsTab:CreateLabel("Interface por: Rayfield")
+
 CreditsTab:CreateLabel("Alguma duvida? Entre no nosso discord! apenas clique na mensagem abaixo!")
+
 CreditsTab:CreateButton({
     Name = "Clique aqui para copiar o link do Discord!"
     Callback = function()
