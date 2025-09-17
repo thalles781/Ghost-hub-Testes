@@ -78,7 +78,7 @@ MenuTab:CreateToggle({
     Callback = function(value)
         toggleNPCESP(value)
         Rayfield:Notify({
-            Title = "NPC ESP",
+            Title = "Npc ESP [BETA]",
             Content = value and "Ativado" or "Desativado",
             Duration = 4,
             Image = 4483362458
